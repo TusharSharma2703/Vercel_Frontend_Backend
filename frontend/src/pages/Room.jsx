@@ -86,9 +86,9 @@ export default function Room() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-ink text-center px-4">
-        <p className="text-xl mb-4">{error}</p>
-        <button onClick={() => navigate("/")} className="bg-accent rounded-lg px-5 py-2 font-semibold">
+      <div className="flex flex-col items-center justify-center min-h-screen px-4 text-center bg-ink">
+        <p className="mb-4 text-xl">{error}</p>
+        <button onClick={() => navigate("/")} className="px-5 py-2 font-semibold rounded-lg bg-accent">
           Back to Dashboard
         </button>
       </div>
@@ -96,26 +96,26 @@ export default function Room() {
   }
 
   if (!room) {
-    return <div className="min-h-screen flex items-center justify-center bg-ink text-white/50">Loading room...</div>;
+    return <div className="flex items-center justify-center min-h-screen bg-ink text-white/50">Loading room...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-ink relative overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden bg-ink">
       {/* Floating reactions layer */}
-      <div className="fixed bottom-24 right-8 z-50 flex flex-col items-end gap-1 pointer-events-none">
+      <div className="fixed z-50 flex flex-col items-end gap-1 pointer-events-none bottom-24 right-8">
         {floatingReactions.map((r) => (
-          <div key={r.id} className="reaction-float text-3xl">
-            {r.emoji} <span className="text-xs text-white/40 align-middle">{r.fromName}</span>
+          <div key={r.id} className="text-3xl reaction-float">
+            {r.emoji} <span className="text-xs align-middle text-white/40">{r.fromName}</span>
           </div>
         ))}
       </div>
 
       <header className="flex items-center justify-between px-6 py-5 border-b border-white/5">
         <div>
-          <h1 className="font-bold text-lg">{room.name}</h1>
+          <h1 className="text-lg font-bold">{room.name}</h1>
           <button
             onClick={copyCode}
-            className="text-xs text-white/40 font-mono tracking-widest hover:text-accent2 transition"
+            className="font-mono text-xs tracking-widest transition text-white/40 hover:text-accent2"
           >
             CODE: {code} {copied ? "✓ copied" : "(click to copy)"}
           </button>
@@ -131,24 +131,28 @@ export default function Room() {
       <main className="max-w-5xl mx-auto px-6 py-10 grid md:grid-cols-[280px_1fr] gap-10">
         {/* Timer + task panel */}
         <div className="flex flex-col items-center gap-6">
-          <Timer durationMinutes={room.durationMinutes} onComplete={handleSessionComplete} />
+          <Timer
+            durationMinutes={room.durationMinutes}
+            startedAt={room.startedAt}
+            onComplete={handleSessionComplete}
+          />
           <div className="w-full">
             <label className="text-xs text-white/40">What are you working on?</label>
             <input
               value={task}
               onChange={(e) => updateTask(e.target.value)}
               placeholder="e.g. Writing report"
-              className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-accent transition"
+              className="w-full px-3 py-2 mt-1 text-sm transition border rounded-lg outline-none bg-white/5 border-white/10 focus:border-accent"
             />
           </div>
           <div className="w-full">
-            <p className="text-xs text-white/40 mb-2">Send a nudge to everyone</p>
-            <div className="flex gap-2 flex-wrap">
+            <p className="mb-2 text-xs text-white/40">Send a nudge to everyone</p>
+            <div className="flex flex-wrap gap-2">
               {EMOJIS.map((emoji) => (
                 <button
                   key={emoji}
                   onClick={() => sendReaction(emoji, null)}
-                  className="text-xl bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg w-10 h-10 transition"
+                  className="w-10 h-10 text-xl transition border rounded-lg bg-white/5 hover:bg-white/10 border-white/10"
                 >
                   {emoji}
                 </button>
@@ -159,11 +163,11 @@ export default function Room() {
 
         {/* Participants + activity */}
         <div>
-          <h2 className="font-semibold mb-3 flex items-center gap-2">
+          <h2 className="flex items-center gap-2 mb-3 font-semibold">
             <span className="w-2 h-2 rounded-full bg-focus pulse-ring" />
             Live in this room ({participants.length})
           </h2>
-          <div className="grid sm:grid-cols-2 gap-3 mb-8">
+          <div className="grid gap-3 mb-8 sm:grid-cols-2">
             {participants.map((p) => (
               <ParticipantCard
                 key={p.socketId}
@@ -174,9 +178,9 @@ export default function Room() {
             ))}
           </div>
 
-          <h2 className="font-semibold mb-3 text-white/60 text-sm">Activity</h2>
+          <h2 className="mb-3 text-sm font-semibold text-white/60">Activity</h2>
           <div className="space-y-1.5">
-            {notices.length === 0 && <p className="text-white/30 text-sm">No activity yet.</p>}
+            {notices.length === 0 && <p className="text-sm text-white/30">No activity yet.</p>}
             {notices.map((n) => (
               <p key={n.id} className="text-sm text-white/50">
                 {n.type === "join" && "🟢"} {n.type === "leave" && "⚪"} {n.type === "complete" && "🎉"} {n.message}

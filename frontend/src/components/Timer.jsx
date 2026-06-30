@@ -1,9 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
-export default function Timer({ durationMinutes, onComplete }) {
+export default function Timer({ durationMinutes, startedAt, onComplete }) {
   const totalSeconds = durationMinutes * 60;
-  const [secondsLeft, setSecondsLeft] = useState(totalSeconds);
-  const [completed, setCompleted] = useState(false);
+
+  const endTime = useMemo(() => {
+    const start = startedAt ? new Date(startedAt).getTime() : Date.now();
+    return start + totalSeconds * 1000;
+  }, [startedAt, totalSeconds]);
+
+  const computeRemaining = () => Math.max(0, Math.round((endTime - Date.now()) / 1000));
+
+  const [secondsLeft, setSecondsLeft] = useState(computeRemaining);
+  const [completed, setCompleted] = useState(secondsLeft <= 0);
 
   useEffect(() => {
     if (secondsLeft <= 0) {
@@ -13,9 +21,17 @@ export default function Timer({ durationMinutes, onComplete }) {
       }
       return;
     }
-    const interval = setInterval(() => setSecondsLeft((s) => s - 1), 1000);
+    const interval = setInterval(() => {
+      const remaining = computeRemaining();
+      setSecondsLeft(remaining);
+      if (remaining <= 0 && !completed) {
+        setCompleted(true);
+        onComplete?.();
+      }
+    }, 1000);
     return () => clearInterval(interval);
-  }, [secondsLeft, completed, onComplete]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [endTime]);
 
   const mins = Math.floor(secondsLeft / 60).toString().padStart(2, "0");
   const secs = (secondsLeft % 60).toString().padStart(2, "0");
@@ -26,8 +42,8 @@ export default function Timer({ durationMinutes, onComplete }) {
   const offset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className="relative w-48 h-48 flex items-center justify-center">
-      <svg className="absolute -rotate-90 w-48 h-48">
+    <div className="relative flex items-center justify-center w-48 h-48">
+      <svg className="absolute w-48 h-48 -rotate-90">
         <circle cx="96" cy="96" r={radius} stroke="#1f2533" strokeWidth="10" fill="none" />
         <circle
           cx="96"
@@ -43,10 +59,10 @@ export default function Timer({ durationMinutes, onComplete }) {
         />
       </svg>
       <div className="text-center">
-        <div className="text-4xl font-bold font-mono">
+        <div className="font-mono text-4xl font-bold">
           {mins}:{secs}
         </div>
-        <div className="text-xs text-white/40 mt-1">{completed ? "Session complete!" : "remaining"}</div>
+        <div className="mt-1 text-xs text-white/40">{completed ? "Session complete!" : "remaining"}</div>
       </div>
     </div>
   );
